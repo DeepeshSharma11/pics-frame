@@ -1,0 +1,38 @@
+# ==========================================
+# Security: Environment & Secret Files (NEVER COMMIT)
+# ==========================================
+.env
+.env.*
+*.env
+*.env.local
+*.env.production
+*.env.development
+backend/.env
+backend/.env.*
+frontend/.env.local
+frontend/.env.*.local
+frontend/.env.production
+*.pem
+*.key
+*.cert
+secrets/
+
+# Python
+backend/venv/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+backend/gallery_data.json
+
+# Node & Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+node_modules/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

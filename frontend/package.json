@@ -1,0 +1,30 @@
+{
+  "name": "pics-frame-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "author": "Deepesh Sharma <CTO & Co-Founder, FociTech> (https://focitech.in)",
+  "contributors": [
+    "Deepesh Sharma (FociTech)"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.3",
+    "typescript": "^5"
+  }
+}
