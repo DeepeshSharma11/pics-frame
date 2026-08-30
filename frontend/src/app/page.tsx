@@ -9,6 +9,7 @@ import MemoryBook from "../components/MemoryBook";
 import LoveLetterModal from "../components/LoveLetterModal";
 import ConfigModal from "../components/ConfigModal";
 import InstantGiftWizard from "../components/InstantGiftWizard";
+import { supabase } from "../lib/supabase";
 import { GalleryConfig } from "../types/gallery";
 
 const INITIAL_CONFIG: GalleryConfig = {
@@ -70,11 +71,42 @@ export default function Home() {
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false);
   const [secretRevealed, setSecretRevealed] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false);
 
   useEffect(() => {
-    // 1. Check URL parameters for custom shared gift link
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+
+      // 1. Check for Supabase Cloud Gift ID (?id=...)
+      const idParam = params.get("id");
+      if (idParam) {
+        const fetchCloudGift = async () => {
+          try {
+            const { data, error } = await supabase
+              .from("galleries")
+              .select("*")
+              .eq("slug", idParam)
+              .single();
+            if (data && !error) {
+              setConfig({
+                recipient_name: data.recipient_name || "My Love",
+                sender_name: data.sender_name || "Yours Always",
+                anniversary_date: data.anniversary_date || "2023-02-14",
+                title: data.title || "Our Eternal Journey",
+                letter: data.letter || "",
+                music_theme: data.music_theme || "romantic_piano",
+                photos: data.photos || [],
+              });
+            }
+          } catch {
+            // Fallback
+          }
+        };
+        fetchCloudGift();
+        return;
+      }
+
+      // 2. Check for Base64 encoded gift parameter (?gift=...)
       const giftParam = params.get("gift");
       if (giftParam) {
         try {
@@ -86,7 +118,7 @@ export default function Home() {
         }
       }
 
-      // 2. Fetch latest saved state from FastAPI backend or fallback to localStorage
+      // 3. Fetch latest state from backend or fallback to localStorage
       fetch("/api/backend/gallery")
         .then((res) => {
           if (res.ok) return res.json();
@@ -110,11 +142,36 @@ export default function Home() {
     }
   }, []);
 
+  const saveToSupabaseCloud = async (cfg: GalleryConfig): Promise<string | null> => {
+    try {
+      const slug = Math.random().toString(36).substring(2, 9);
+      const { error } = await supabase.from("galleries").insert([
+        {
+          slug,
+          recipient_name: cfg.recipient_name,
+          sender_name: cfg.sender_name,
+          anniversary_date: cfg.anniversary_date,
+          title: cfg.title,
+          letter: cfg.letter,
+          music_theme: cfg.music_theme,
+          photos: cfg.photos,
+        },
+      ]);
+      if (!error) return slug;
+    } catch {
+      // Fallback
+    }
+    return null;
+  };
+
   const handleSaveConfig = async (newConfig: GalleryConfig) => {
     setConfig(newConfig);
     if (typeof window !== "undefined") {
       localStorage.setItem("picsframe_custom_config", JSON.stringify(newConfig));
     }
+    // Attempt saving to Supabase
+    saveToSupabaseCloud(newConfig);
+
     // Attempt saving to FastAPI backend
     try {
       await fetch("/api/backend/gallery", {
@@ -127,16 +184,86 @@ export default function Home() {
     }
   };
 
-  const handleCopyShareLink = () => {
+  const copyTextToClipboard = async (text: string): Promise<boolean> => {
+    // 1. Try modern navigator.clipboard
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        // continue to fallback
+      }
+    }
+
+    // 2. Robust fallback for mobile: temporary textarea
     try {
-      const jsonStr = JSON.stringify(config);
-      const encoded = btoa(encodeURIComponent(jsonStr));
-      const url = `${window.location.origin}${window.location.pathname}?gift=${encoded}`;
-      navigator.clipboard.writeText(url);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 3000);
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      if (successful) return true;
     } catch {
-      alert("Gift link ready! You can share this page URL.");
+      // continue to fallback
+    }
+
+    return false;
+  };
+
+  const handleCopyShareLink = async () => {
+    setIsGeneratingLink(true);
+
+    try {
+      // 1. Try Supabase cloud short link first
+      let shareUrl = "";
+      const slug = await saveToSupabaseCloud(config);
+      if (slug) {
+        shareUrl = `${window.location.origin}${window.location.pathname}?id=${slug}`;
+      } else {
+        // 2. Fallback to base64 param
+        const jsonStr = JSON.stringify(config);
+        const encoded = btoa(encodeURIComponent(jsonStr));
+        shareUrl = `${window.location.origin}${window.location.pathname}?gift=${encoded}`;
+      }
+
+      // 3. Try Native Web Share API on mobile (Direct WhatsApp/Instagram/Telegram share)
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({
+            title: `A Special Memory Gift For ${config.recipient_name} ❤️`,
+            text: `I made something special for you! Open our memories here ✨:`,
+            url: shareUrl,
+          });
+          setCopiedLink(true);
+          setTimeout(() => setCopiedLink(false), 4000);
+          setIsGeneratingLink(false);
+          return;
+        } catch (err: any) {
+          if (err.name === "AbortError") {
+            setIsGeneratingLink(false);
+            return;
+          }
+        }
+      }
+
+      // 4. Fallback to Clipboard Copy
+      const copied = await copyTextToClipboard(shareUrl);
+      if (copied) {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 4000);
+      } else {
+        // 5. Final fallback: prompt modal
+        prompt("Your gift link is ready! Copy the link below:", shareUrl);
+      }
+    } catch {
+      alert("Gift link ready! You can copy the page address from your browser.");
+    } finally {
+      setIsGeneratingLink(false);
     }
   };
 
@@ -201,8 +328,13 @@ export default function Home() {
             <button
               className="share-gift-cta"
               onClick={handleCopyShareLink}
+              disabled={isGeneratingLink}
             >
-              {copiedLink ? "✓ Copied Shareable Gift Link!" : "🔗 Share This Gift With Her"}
+              {isGeneratingLink
+                ? "⏳ Generating Link..."
+                : copiedLink
+                ? "✓ Copied / Shared Successfully!"
+                : "🔗 Share This Gift With Her"}
             </button>
           </div>
 

@@ -31,8 +31,59 @@ export default function InstantGiftWizard({
 
   if (!isOpen) return null;
 
+  const compressImage = (file: File, maxWidth = 900, quality = 0.75): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+      };
+      reader.onerror = () => resolve("");
+    });
+  };
+
   const uploadFileToCloudinary = async (file: File): Promise<string> => {
-    // 1. Try backend Cloudinary upload endpoint
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "indkrlsl";
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "pics_frame_preset";
+
+    // 1. Try direct Cloudinary unsigned upload
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", uploadPreset);
+      const cldRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      if (cldRes.ok) {
+        const cldData = await cldRes.json();
+        if (cldData.secure_url) return cldData.secure_url;
+      }
+    } catch {
+      // Continue to backend or compression fallback
+    }
+
+    // 2. Try backend Cloudinary upload endpoint
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -48,14 +99,8 @@ export default function InstantGiftWizard({
       // Fallback
     }
 
-    // 2. Fallback to base64 Data URL
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
+    // 3. Ultra-fast compressed Base64 fallback (< 50KB)
+    return await compressImage(file);
   };
 
   const handleMultipleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
