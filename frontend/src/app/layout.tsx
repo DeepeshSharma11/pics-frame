@@ -9,6 +9,14 @@ export const metadata: Metadata = {
   publisher: "FociTech",
   applicationName: "Pics Frame",
   keywords: ["Pics Frame", "Romantic WebApp", "FociTech", "Deepesh Sharma", "Memory Book", "Next.js", "FastAPI"],
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     title: "Pics Frame — Our Story in Frames",
     description: "Built with passion by Deepesh Sharma (CTO & Co-Founder, FociTech).",
