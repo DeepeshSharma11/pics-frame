@@ -9,6 +9,8 @@ import MemoryBook from "../components/MemoryBook";
 import LoveLetterModal from "../components/LoveLetterModal";
 import ConfigModal from "../components/ConfigModal";
 import InstantGiftWizard from "../components/InstantGiftWizard";
+import SurpriseProposalModal from "../components/SurpriseProposalModal";
+import LoveReasonsSection from "../components/LoveReasonsSection";
 import { supabase } from "../lib/supabase";
 import { GalleryConfig } from "../types/gallery";
 
@@ -19,6 +21,10 @@ const INITIAL_CONFIG: GalleryConfig = {
   title: "Our Eternal Journey",
   letter: "From the very first moment we met to every quiet laugh we share, every memory with you is my favorite chapter. Thank you for making every single day feel magical and unforgettable.",
   music_theme: "romantic_piano",
+  theme: "rose",
+  particle_type: "hearts",
+  occasion_type: "anniversary",
+  surprise_message: "Will you be mine forever & always? 💍✨",
   photos: [
     {
       id: "1",
@@ -69,6 +75,7 @@ export default function Home() {
   const [isLetterOpen, setIsLetterOpen] = useState<boolean>(false);
   const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false);
+  const [isProposalOpen, setIsProposalOpen] = useState<boolean>(false);
   const [secretRevealed, setSecretRevealed] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false);
@@ -95,6 +102,10 @@ export default function Home() {
                 title: data.title || "Our Eternal Journey",
                 letter: data.letter || "",
                 music_theme: data.music_theme || "romantic_piano",
+                theme: data.theme || "rose",
+                particle_type: data.particle_type || "hearts",
+                occasion_type: data.occasion_type || "anniversary",
+                surprise_message: data.surprise_message || "",
                 photos: data.photos || [],
               });
             }
@@ -154,6 +165,10 @@ export default function Home() {
           title: cfg.title,
           letter: cfg.letter,
           music_theme: cfg.music_theme,
+          theme: cfg.theme,
+          particle_type: cfg.particle_type,
+          occasion_type: cfg.occasion_type,
+          surprise_message: cfg.surprise_message,
           photos: cfg.photos,
         },
       ]);
@@ -267,13 +282,25 @@ export default function Home() {
     }
   };
 
+  const occasionLabel =
+    config.occasion_type === "birthday"
+      ? "🎂 Birthday Celebration"
+      : config.occasion_type === "proposal"
+      ? "💍 Love Proposal"
+      : config.occasion_type === "valentine"
+      ? "🌹 Valentine's Special"
+      : "✨ A Timeless Keepsake";
+
   return (
-    <div className="app-viewport">
+    <div className={`app-viewport theme-${config.theme || "rose"}`}>
       {/* Background Animated Atmosphere */}
-      <ParticleBackground />
+      <ParticleBackground
+        particleType={config.particle_type || "hearts"}
+        theme={config.theme || "rose"}
+      />
 
       {/* Floating Audio Ambient Soundtrack */}
-      <AudioSynthesizer />
+      <AudioSynthesizer musicTheme={config.music_theme || "romantic_piano"} />
 
       {/* Top Floating Glass Navigation */}
       <header className="glass-nav">
@@ -297,6 +324,13 @@ export default function Home() {
             💌 Love Letter
           </button>
           <button
+            className="gift-btn surprise-nav-btn"
+            onClick={() => setIsProposalOpen(true)}
+            title="Open Special Question / Surprise"
+          >
+            💍 Surprise
+          </button>
+          <button
             className="gift-btn customize-nav-btn"
             onClick={() => setIsConfigOpen(true)}
             title="Fine-tune with your own photos & details"
@@ -309,7 +343,7 @@ export default function Home() {
       {/* Hero Section */}
       <main className="main-content">
         <section className="hero-section">
-          <div className="hero-badge">A Timeless Keepsake</div>
+          <div className="hero-badge">{occasionLabel}</div>
           <h1 className="hero-title">
             For My Dearest <span className="highlight-text">{config.recipient_name}</span>
           </h1>
@@ -374,6 +408,12 @@ export default function Home() {
           )}
         </section>
 
+        {/* Interactive Reasons Why I Adore You */}
+        <LoveReasonsSection
+          reasons={config.reasons}
+          recipientName={config.recipient_name}
+        />
+
         {/* Secret Love Message Box */}
         <section className="secret-card-section">
           <div className="secret-card">
@@ -429,6 +469,16 @@ export default function Home() {
         recipientName={config.recipient_name}
         senderName={config.sender_name}
         letterContent={config.letter}
+      />
+
+      {/* Surprise Proposal Modal */}
+      <SurpriseProposalModal
+        isOpen={isProposalOpen}
+        onClose={() => setIsProposalOpen(false)}
+        recipientName={config.recipient_name}
+        senderName={config.sender_name}
+        occasionType={config.occasion_type}
+        surpriseMessage={config.surprise_message}
       />
 
       {/* Customizer Modal */}

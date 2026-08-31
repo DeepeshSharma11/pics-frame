@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { GalleryConfig, PhotoItem } from "../types/gallery";
+import { GalleryConfig, PhotoItem, ThemeType, ParticleType, OccasionType } from "../types/gallery";
 
 interface InstantGiftWizardProps {
   isOpen: boolean;
@@ -20,6 +20,11 @@ export default function InstantGiftWizard({
   const [anniversaryDate, setAnniversaryDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
+  const [occasionType, setOccasionType] = useState<OccasionType>("anniversary");
+  const [theme, setTheme] = useState<ThemeType>("rose");
+  const [particleType, setParticleType] = useState<ParticleType>("hearts");
+  const [musicTheme, setMusicTheme] = useState<string>("romantic_piano");
+  const [surpriseMessage, setSurpriseMessage] = useState<string>("");
   const [letter, setLetter] = useState<string>(
     "From the very first moment we met, every memory with you has been my favorite chapter. Thank you for making my world so bright and beautiful."
   );
@@ -112,7 +117,7 @@ export default function InstantGiftWizard({
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      setUploadProgress(`Uploading ${i + 1} of ${files.length} to Cloudinary...`);
+      setUploadProgress(`Optimizing ${i + 1} of ${files.length}...`);
       const url = await uploadFileToCloudinary(file);
       newItems.push({
         id: String(Date.now() + i),
@@ -147,7 +152,11 @@ export default function InstantGiftWizard({
       anniversary_date: anniversaryDate,
       title: `${recipientName.trim() || "Our"} Eternal Journey`,
       letter: letter.trim(),
-      music_theme: "romantic_piano",
+      music_theme: musicTheme,
+      theme,
+      particle_type: particleType,
+      occasion_type: occasionType,
+      surprise_message: surpriseMessage.trim(),
       photos: uploadedPhotos,
     };
 
@@ -163,11 +172,11 @@ export default function InstantGiftWizard({
       <div className="wizard-modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="wizard-header">
-          <div className="wizard-badge">🪄 3-Minute Magic Gift Creator</div>
+          <div className="wizard-badge">🪄 3-Step Romantic Gift Creator</div>
           <h2 className="wizard-title">
-            {step === 1 && "Step 1: Upload Your Favorite Photos"}
-            {step === 2 && "Step 2: Add Names & Love Message"}
-            {step === 3 && "Step 3: Boom Ready! Review & Launch"}
+            {step === 1 && "Step 1: Upload 4–5 Special Photos"}
+            {step === 2 && "Step 2: Names, Occasion & Love Letter"}
+            {step === 3 && "Step 3: Magic Theme & Atmosphere"}
           </h2>
           <button className="close-btn" onClick={onClose}>
             ✕
@@ -188,7 +197,7 @@ export default function InstantGiftWizard({
                   {isUploading ? uploadProgress : "Click to select 4 to 5 photos"}
                 </h3>
                 <p className="dropzone-subtitle">
-                  Supports JPG, PNG, WEBP. Photos are automatically optimized with Cloudinary CDN.
+                  Auto-compressed for instant loading. Supports JPG, PNG, WEBP.
                 </p>
                 <input
                   ref={fileInputRef}
@@ -212,7 +221,7 @@ export default function InstantGiftWizard({
                 <div className="uploaded-preview-section">
                   <div className="preview-heading">
                     <span>Uploaded Photos ({uploadedPhotos.length})</span>
-                    <span className="rec-text">Tip: 4 to 5 photos look best!</span>
+                    <span className="rec-text">Edit captions below if you want:</span>
                   </div>
                   <div className="preview-grid">
                     {uploadedPhotos.map((p, idx) => (
@@ -244,17 +253,40 @@ export default function InstantGiftWizard({
             </div>
           )}
 
-          {/* STEP 2: NAMES & DATES */}
+          {/* STEP 2: NAMES, OCCASION & LETTER */}
           {step === 2 && (
             <div className="wizard-step-content">
+              {/* Occasion Selector */}
+              <div className="occasion-selector">
+                <label className="section-field-label">🎁 What are you celebrating?</label>
+                <div className="occasion-buttons">
+                  {[
+                    { key: "anniversary", label: "🥂 Anniversary / Relationship" },
+                    { key: "birthday", label: "🎂 Birthday Celebration" },
+                    { key: "proposal", label: "💍 Love Proposal" },
+                    { key: "valentine", label: "🌹 Valentine's Day" },
+                    { key: "just_because", label: "💖 Just Because I Love You" },
+                  ].map((occ) => (
+                    <button
+                      key={occ.key}
+                      type="button"
+                      className={`occasion-btn ${occasionType === occ.key ? "active" : ""}`}
+                      onClick={() => setOccasionType(occ.key as OccasionType)}
+                    >
+                      {occ.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="wizard-form-grid">
                 <div className="input-group">
-                  <label>Her Name / Nickname</label>
+                  <label>Partner&apos;s Name / Nickname</label>
                   <input
                     type="text"
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
-                    placeholder="e.g. Maya / My Sunshine"
+                    placeholder="e.g. Maya / My Love / Janu"
                   />
                 </div>
 
@@ -264,12 +296,12 @@ export default function InstantGiftWizard({
                     type="text"
                     value={senderName}
                     onChange={(e) => setSenderName(e.target.value)}
-                    placeholder="e.g. Rahul"
+                    placeholder="e.g. Deepesh / Yours Always"
                   />
                 </div>
 
                 <div className="input-group full">
-                  <label>When Did Your Story Begin? (Anniversary Date)</label>
+                  <label>Special Date (Relationship / Anniversary / Birthday)</label>
                   <input
                     type="date"
                     value={anniversaryDate}
@@ -278,37 +310,104 @@ export default function InstantGiftWizard({
                 </div>
 
                 <div className="input-group full">
-                  <label>Heartfelt Love Letter / Secret Note</label>
+                  <label>Heartfelt Love Letter</label>
                   <textarea
-                    rows={4}
+                    rows={3}
                     value={letter}
                     onChange={(e) => setLetter(e.target.value)}
                     placeholder="Write anything sweet, romantic, or funny..."
+                  />
+                </div>
+
+                <div className="input-group full">
+                  <label>💍 Surprise Question / Proposal (Optional)</label>
+                  <input
+                    type="text"
+                    value={surpriseMessage}
+                    onChange={(e) => setSurpriseMessage(e.target.value)}
+                    placeholder="e.g. Will you be my forever? 💍 / Happy Birthday Jaan! 🎂"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          {/* STEP 3: BOOM REVIEW */}
+          {/* STEP 3: THEME, PARTICLES & SOUNDTRACK */}
           {step === 3 && (
-            <div className="wizard-step-content text-center">
-              <div className="boom-hero">
-                <div className="boom-emoji">{boomState ? "💥✨💖" : "🎁"}</div>
-                <h3 className="boom-title">
-                  {boomState
-                    ? "BOOM! Creating Your Magic Gift..."
-                    : `Ready to surprise ${recipientName || "Her"}?`}
-                </h3>
-                <p className="boom-desc">
-                  We will assemble your {uploadedPhotos.length} photos into floating 3D polaroids, a storybook album, real-time timer, and wax-sealed letter.
-                </p>
-
-                <div className="summary-pill-list">
-                  <div className="summary-pill">📸 {uploadedPhotos.length} Photos Ready</div>
-                  <div className="summary-pill">💖 For: {recipientName || "My Love"}</div>
-                  <div className="summary-pill">⏳ Timer Active</div>
+            <div className="wizard-step-content">
+              {/* Color Theme */}
+              <div className="custom-option-block">
+                <label className="section-field-label">🎨 Aesthetic Color Theme</label>
+                <div className="theme-chips">
+                  {[
+                    { id: "rose", name: "🌸 Rose Gold Romance" },
+                    { id: "midnight", name: "🌌 Midnight Starlight" },
+                    { id: "sunset", name: "🌅 Golden Sunset" },
+                    { id: "emerald", name: "🌿 Emerald Luxury" },
+                    { id: "neon", name: "🔮 Cyber Neon" },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className={`theme-chip ${theme === t.id ? "active" : ""}`}
+                      onClick={() => setTheme(t.id as ThemeType)}
+                    >
+                      {t.name}
+                    </button>
+                  ))}
                 </div>
+              </div>
+
+              {/* Floating Particles */}
+              <div className="custom-option-block">
+                <label className="section-field-label">✨ Floating Atmosphere Effect</label>
+                <div className="particle-chips">
+                  {[
+                    { id: "hearts", label: "❤️ Floating Hearts" },
+                    { id: "petals", label: "🌹 Rose Petals" },
+                    { id: "stars", label: "✨ Starlight Sparkles" },
+                    { id: "butterflies", label: "🦋 Butterflies" },
+                  ].map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`particle-chip ${particleType === p.id ? "active" : ""}`}
+                      onClick={() => setParticleType(p.id as ParticleType)}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Soundscape */}
+              <div className="custom-option-block">
+                <label className="section-field-label">🎵 Romantic Soundscape Ambiance</label>
+                <div className="music-chips">
+                  {[
+                    { id: "romantic_piano", label: "🎹 Romantic Piano Melody" },
+                    { id: "lofi", label: "☕ Warm Lo-Fi Chords" },
+                    { id: "stardust", label: "🌌 Stardust Music Box" },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className={`music-chip ${musicTheme === m.id ? "active" : ""}`}
+                      onClick={() => setMusicTheme(m.id)}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="boom-summary-card">
+                <div className="boom-emoji">{boomState ? "💥✨💖" : "🎁"}</div>
+                <h4>{recipientName ? `Ready to Wow ${recipientName}!` : "Ready to Create Magic!"}</h4>
+                <p>
+                  Assembling {uploadedPhotos.length} photos into 3D Polaroids, Flip Storybook, Real-time Counter & Love Letter.
+                </p>
               </div>
             </div>
           )}
@@ -348,7 +447,7 @@ export default function InstantGiftWizard({
               className="wizard-next-btn"
               onClick={() => setStep(3)}
             >
-              Preview & Create Gift →
+              Next: Choose Themes & Music →
             </button>
           )}
 
@@ -358,7 +457,7 @@ export default function InstantGiftWizard({
               onClick={handleCreateBoom}
               disabled={boomState}
             >
-              {boomState ? "✨ Magic in Progress..." : "🚀 BOOM READY! Create My Gift"}
+              {boomState ? "✨ Creating Magic..." : "🚀 BOOM READY! Launch Gift"}
             </button>
           )}
         </div>

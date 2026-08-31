@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { ParticleType, ThemeType } from "../types/gallery";
 
 interface Particle {
   x: number;
@@ -8,11 +9,21 @@ interface Particle {
   size: number;
   speedX: number;
   speedY: number;
+  rotation: number;
+  rotationSpeed: number;
   opacity: number;
-  isHeart: boolean;
+  type: string;
 }
 
-export default function ParticleBackground() {
+interface ParticleBackgroundProps {
+  particleType?: ParticleType;
+  theme?: ThemeType;
+}
+
+export default function ParticleBackground({
+  particleType = "hearts",
+  theme = "rose",
+}: ParticleBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -25,9 +36,8 @@ export default function ParticleBackground() {
     let isVisible = true;
 
     const isMobile = window.innerWidth < 768;
-    // On mobile, keep fixed resolution to eliminate GPU overhead
     const dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
-    
+
     let width = (canvas.width = window.innerWidth * dpr);
     let height = (canvas.height = window.innerHeight * dpr);
     if (dpr !== 1) ctx.scale(dpr, dpr);
@@ -46,21 +56,22 @@ export default function ParticleBackground() {
     window.addEventListener("resize", handleResize, { passive: true });
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Mobile: 8 particles, Desktop: 16 particles (ultra-lightweight)
-    const count = isMobile ? 8 : 16;
+    const count = isMobile ? 10 : 20;
     const particles: Particle[] = [];
-    let cssWidth = window.innerWidth;
-    let cssHeight = window.innerHeight;
+    const cssWidth = window.innerWidth;
+    const cssHeight = window.innerHeight;
 
     for (let i = 0; i < count; i++) {
       particles.push({
         x: Math.random() * cssWidth,
         y: Math.random() * cssHeight,
-        size: isMobile ? Math.random() * 4 + 2 : Math.random() * 5 + 3,
-        speedX: (Math.random() - 0.5) * 0.25,
-        speedY: -(Math.random() * 0.35 + 0.1),
-        opacity: Math.random() * 0.45 + 0.15,
-        isHeart: i % 2 === 0,
+        size: isMobile ? Math.random() * 5 + 3 : Math.random() * 7 + 4,
+        speedX: (Math.random() - 0.5) * 0.35,
+        speedY: -(Math.random() * 0.4 + 0.15),
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.02,
+        opacity: Math.random() * 0.5 + 0.2,
+        type: particleType,
       });
     }
 
@@ -72,41 +83,91 @@ export default function ParticleBackground() {
         return;
       }
 
-      cssWidth = window.innerWidth;
-      cssHeight = window.innerHeight;
+      const curWidth = window.innerWidth;
+      const curHeight = window.innerHeight;
 
       const delta = Math.min((time - lastTime) / 16.66, 2);
       lastTime = time;
 
-      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      ctx.clearRect(0, 0, curWidth, curHeight);
+
+      // Color paletting based on theme
+      let primaryColor = "244, 114, 182"; // rose
+      let secondaryColor = "253, 230, 138"; // gold
+
+      if (theme === "midnight") {
+        primaryColor = "147, 197, 253"; // ice blue
+        secondaryColor = "196, 181, 253"; // starlight violet
+      } else if (theme === "sunset") {
+        primaryColor = "251, 146, 60"; // amber sunset
+        secondaryColor = "254, 215, 170"; // warm peach
+      } else if (theme === "emerald") {
+        primaryColor = "52, 211, 153"; // emerald
+        secondaryColor = "253, 230, 138"; // champagne gold
+      } else if (theme === "neon") {
+        primaryColor = "236, 72, 153"; // neon pink
+        secondaryColor = "168, 85, 247"; // neon violet
+      }
 
       for (let i = 0; i < count; i++) {
         const p = particles[i];
         p.x += p.speedX * delta;
         p.y += p.speedY * delta;
+        p.rotation += p.rotationSpeed * delta;
 
-        if (p.y < -15) {
-          p.y = cssHeight + 10;
-          p.x = Math.random() * cssWidth;
+        if (p.y < -20) {
+          p.y = curHeight + 15;
+          p.x = Math.random() * curWidth;
         }
-        if (p.x < -15) p.x = cssWidth + 10;
-        if (p.x > cssWidth + 15) p.x = -10;
+        if (p.x < -20) p.x = curWidth + 15;
+        if (p.x > curWidth + 20) p.x = -15;
 
-        ctx.fillStyle = p.isHeart
-          ? `rgba(244, 114, 182, ${p.opacity})`
-          : `rgba(253, 230, 138, ${p.opacity})`;
+        const color = i % 2 === 0 ? primaryColor : secondaryColor;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.fillStyle = `rgba(${color}, ${p.opacity})`;
 
-        if (p.isHeart) {
-          const s = p.size;
+        const s = p.size;
+
+        if (particleType === "hearts") {
+          // Smooth heart shape
           ctx.beginPath();
-          ctx.arc(p.x - s / 3, p.y, s / 3, 0, Math.PI * 2);
-          ctx.arc(p.x + s / 3, p.y, s / 3, 0, Math.PI * 2);
+          ctx.arc(-s / 3, 0, s / 3, 0, Math.PI * 2);
+          ctx.arc(s / 3, 0, s / 3, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (particleType === "petals") {
+          // Rose petal ellipse
+          ctx.beginPath();
+          ctx.ellipse(0, 0, s, s / 2, p.rotation, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (particleType === "stars") {
+          // 4-point star sparkle
+          ctx.beginPath();
+          ctx.moveTo(0, -s);
+          ctx.lineTo(s / 3, -s / 3);
+          ctx.lineTo(s, 0);
+          ctx.lineTo(s / 3, s / 3);
+          ctx.lineTo(0, s);
+          ctx.lineTo(-s / 3, s / 3);
+          ctx.lineTo(-s, 0);
+          ctx.lineTo(-s / 3, -s / 3);
+          ctx.closePath();
+          ctx.fill();
+        } else if (particleType === "butterflies") {
+          // Butterfly wings
+          ctx.beginPath();
+          ctx.ellipse(-s / 2, -s / 3, s / 2, s / 3, 0.4, 0, Math.PI * 2);
+          ctx.ellipse(s / 2, -s / 3, s / 2, s / 3, -0.4, 0, Math.PI * 2);
           ctx.fill();
         } else {
+          // Twinkle circle sparkle
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+          ctx.arc(0, 0, s / 2, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        ctx.restore();
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -119,7 +180,7 @@ export default function ParticleBackground() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [particleType, theme]);
 
   return (
     <canvas

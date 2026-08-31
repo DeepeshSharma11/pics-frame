@@ -2,22 +2,45 @@
 
 import React, { useState, useEffect, useRef } from "react";
 
-export default function AudioSynthesizer() {
+interface AudioSynthesizerProps {
+  musicTheme?: string;
+}
+
+export default function AudioSynthesizer({ musicTheme = "romantic_piano" }: AudioSynthesizerProps) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
+  const pianoChords = [
+    [261.63, 329.63, 523.25], // C Major
+    [329.63, 392.00, 659.25], // E Minor
+    [220.00, 261.63, 440.00], // A Minor
+    [174.61, 261.63, 349.23], // F Major
+  ];
 
-  const playNote = (ctx: AudioContext, freq: number, duration: number = 2.2) => {
+  const lofiChords = [
+    [261.63, 311.13, 392.00, 466.16], // Cm7
+    [220.00, 261.63, 329.63, 392.00], // Am7
+    [174.61, 220.00, 261.63, 329.63], // Fmaj7
+    [196.00, 246.94, 293.66, 349.23], // G7
+  ];
+
+  const stardustChords = [
+    [523.25, 659.25, 783.99, 1046.50],
+    [587.33, 698.46, 880.00, 1174.66],
+    [440.00, 523.25, 659.25, 880.00],
+    [349.23, 440.00, 523.25, 698.46],
+  ];
+
+  const playNote = (ctx: AudioContext, freq: number, duration: number = 2.4, type: OscillatorType = "sine") => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = "sine";
+    osc.type = type;
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
 
-    gain.gain.setValueAtTime(0.001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.06);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.08);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
 
     osc.connect(gain);
@@ -29,7 +52,9 @@ export default function AudioSynthesizer() {
 
   const startMusic = () => {
     if (!audioCtxRef.current) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       audioCtxRef.current = new AudioCtx();
     }
 
@@ -41,12 +66,14 @@ export default function AudioSynthesizer() {
     setIsPlaying(true);
 
     let step = 0;
-    const progression = [
-      [261.63, 329.63, 523.25],
-      [329.63, 392.00, 659.25],
-      [220.00, 261.63, 440.00],
-      [174.61, 261.63, 349.23],
-    ];
+    const progression =
+      musicTheme === "stardust"
+        ? stardustChords
+        : musicTheme === "lofi"
+        ? lofiChords
+        : pianoChords;
+
+    const oscType: OscillatorType = musicTheme === "stardust" ? "triangle" : "sine";
 
     intervalRef.current = setInterval(() => {
       if (!ctx || ctx.state !== "running") return;
@@ -55,17 +82,10 @@ export default function AudioSynthesizer() {
 
       currentChord.forEach((f, idx) => {
         setTimeout(() => {
-          if (ctx.state === "running") playNote(ctx, f, 2.5);
-        }, idx * 260);
+          if (ctx.state === "running") playNote(ctx, f, 2.8, oscType);
+        }, idx * 240);
       });
-
-      if (Math.random() > 0.35) {
-        setTimeout(() => {
-          const randFreq = notes[Math.floor(Math.random() * notes.length)];
-          if (ctx.state === "running") playNote(ctx, randFreq, 1.8);
-        }, 700 + Math.random() * 500);
-      }
-    }, 2400);
+    }, 2500);
   };
 
   const stopMusic = () => {
@@ -101,7 +121,7 @@ export default function AudioSynthesizer() {
         bottom: "16px",
         right: "16px",
         zIndex: 50,
-        background: isPlaying ? "rgba(219, 39, 119, 0.4)" : "rgba(22, 17, 34, 0.92)",
+        background: isPlaying ? "rgba(219, 39, 119, 0.5)" : "rgba(22, 17, 34, 0.92)",
         border: "1px solid rgba(244, 114, 182, 0.35)",
         borderRadius: "40px",
         padding: "8px 14px",
@@ -115,7 +135,7 @@ export default function AudioSynthesizer() {
       }}
     >
       <span style={{ fontSize: "1rem" }}>{isPlaying ? "🎵" : "🔇"}</span>
-      <span>{isPlaying ? "Playing" : "Ambiance"}</span>
+      <span>{isPlaying ? "Ambiance ON" : "Soundtrack"}</span>
       {isPlaying && (
         <span className="sound-wave">
           <span className="bar"></span>

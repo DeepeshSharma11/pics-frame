@@ -1394,3 +1394,291 @@ body {
   0%, 100% { height: 2px; }
   50% { height: 10px; }
 }
+
+/* ==========================================================================
+   DYNAMIC ROMANTIC THEMES
+   ========================================================================== */
+.theme-midnight {
+  background: radial-gradient(circle at 50% 15%, #0f172a 0%, #030712 70%) !important;
+  --rose-glow: #60a5fa;
+  --gold-glow: #93c5fd;
+  --gold-accent: #38bdf8;
+  --border-glow: rgba(96, 165, 250, 0.4);
+}
+
+.theme-sunset {
+  background: radial-gradient(circle at 50% 15%, #2a1208 0%, #0c0604 70%) !important;
+  --rose-glow: #fb923c;
+  --gold-glow: #fed7aa;
+  --gold-accent: #f59e0b;
+  --border-glow: rgba(251, 146, 60, 0.4);
+}
+
+.theme-emerald {
+  background: radial-gradient(circle at 50% 15%, #062419 0%, #030d09 70%) !important;
+  --rose-glow: #34d399;
+  --gold-glow: #a7f3d0;
+  --gold-accent: #10b981;
+  --border-glow: rgba(52, 211, 153, 0.4);
+}
+
+.theme-neon {
+  background: radial-gradient(circle at 50% 15%, #20042b 0%, #09020e 70%) !important;
+  --rose-glow: #ec4899;
+  --gold-glow: #c084fc;
+  --gold-accent: #a855f7;
+  --border-glow: rgba(236, 72, 153, 0.5);
+}
+
+.surprise-nav-btn {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.35), rgba(244, 114, 182, 0.3));
+  border: 1px solid var(--gold-accent);
+  color: #fef08a;
+  animation: pulseGlow 2.5s infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.2); }
+  50% { box-shadow: 0 0 16px rgba(251, 191, 36, 0.5); }
+}
+
+/* ==========================================================================
+   OCCASION & THEME CHIPS IN WIZARD
+   ========================================================================== */
+.occasion-selector, .custom-option-block {
+  margin-bottom: 14px;
+}
+
+.section-field-label {
+  font-size: 0.78rem;
+  color: var(--gold-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.occasion-buttons, .theme-chips, .particle-chips, .music-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.occasion-btn, .theme-chip, .particle-chip, .music-chip {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  color: #f3e8ff;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.occasion-btn.active, .theme-chip.active, .particle-chip.active, .music-chip.active {
+  background: linear-gradient(135deg, #db2777, #f59e0b);
+  border-color: #f472b6;
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(219, 39, 119, 0.4);
+}
+
+.boom-summary-card {
+  background: rgba(244, 114, 182, 0.08);
+  border: 1px solid var(--rose-glow);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 14px;
+  text-align: center;
+}
+
+.boom-summary-card h4 {
+  color: var(--gold-glow);
+  margin-bottom: 4px;
+}
+
+.boom-summary-card p {
+  font-size: 0.8rem;
+  color: #fce7f3;
+  margin: 0;
+}
+
+/* ==========================================================================
+   INTERACTIVE REASONS WHY I ADORE YOU
+   ========================================================================== */
+.reasons-section {
+  margin: 40px 0;
+}
+
+.reasons-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--rose-glow);
+  margin-bottom: 4px;
+}
+
+.reasons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.reason-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.reason-card:hover {
+  border-color: var(--rose-glow);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.reason-card.open {
+  border-color: var(--gold-accent);
+  background: rgba(30, 24, 48, 0.85);
+}
+
+.reason-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reason-number {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--gold-glow);
+}
+
+.reason-icon {
+  font-size: 1.1rem;
+}
+
+.reason-text {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #fdf2f8;
+  margin: 0;
+}
+
+.reason-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   SURPRISE PROPOSAL MODAL
+   ========================================================================== */
+.proposal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 6, 14, 0.92);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.proposal-modal-card {
+  background: linear-gradient(145deg, #1c142e 0%, #0d0a17 100%);
+  border: 2px solid var(--gold-glow);
+  border-radius: 20px;
+  padding: 32px 24px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(251, 191, 36, 0.25);
+  animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.proposal-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.proposal-sparkles {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+}
+
+.proposal-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.proposal-message {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: #fef08a;
+  margin-bottom: 24px;
+}
+
+.proposal-yes-btn {
+  background: linear-gradient(135deg, #ec4899, #f59e0b);
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 14px 28px;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.45);
+  transition: transform 0.2s ease;
+  width: 100%;
+}
+
+.proposal-yes-btn:hover {
+  transform: scale(1.03);
+}
+
+.proposal-celebration {
+  animation: fadeIn 0.4s ease;
+}
+
+.celebration-emojis {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+}
+
+.celebration-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  color: var(--gold-glow);
+  margin-bottom: 6px;
+}
+
+.celebration-subtitle {
+  font-size: 0.95rem;
+  color: #fce7f3;
+}
+

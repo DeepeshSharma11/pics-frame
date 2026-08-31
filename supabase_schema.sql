@@ -13,10 +13,20 @@ CREATE TABLE IF NOT EXISTS public.galleries (
     title TEXT NOT NULL DEFAULT 'Our Eternal Journey',
     letter TEXT NOT NULL DEFAULT 'From the very first moment we met, every memory with you has been my favorite chapter.',
     music_theme TEXT DEFAULT 'romantic_piano',
+    theme TEXT DEFAULT 'rose',
+    particle_type TEXT DEFAULT 'hearts',
+    occasion_type TEXT DEFAULT 'anniversary',
+    surprise_message TEXT DEFAULT '',
     photos JSONB NOT NULL DEFAULT '[]'::JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Ensure columns exist if table was already created
+ALTER TABLE public.galleries ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'rose';
+ALTER TABLE public.galleries ADD COLUMN IF NOT EXISTS particle_type TEXT DEFAULT 'hearts';
+ALTER TABLE public.galleries ADD COLUMN IF NOT EXISTS occasion_type TEXT DEFAULT 'anniversary';
+ALTER TABLE public.galleries ADD COLUMN IF NOT EXISTS surprise_message TEXT DEFAULT '';
 
 -- 2. Create index on slug and created_at for fast queries
 CREATE INDEX IF NOT EXISTS idx_galleries_slug ON public.galleries(slug);
@@ -55,6 +65,10 @@ INSERT INTO public.galleries (
     title,
     letter,
     music_theme,
+    theme,
+    particle_type,
+    occasion_type,
+    surprise_message,
     photos
 ) VALUES (
     'demo',
@@ -64,6 +78,10 @@ INSERT INTO public.galleries (
     'Our Eternal Journey',
     'From the very first moment we met to every quiet laugh we share, every memory with you is my favorite chapter. Thank you for making every day magical.',
     'romantic_piano',
+    'rose',
+    'hearts',
+    'anniversary',
+    'Will you stay by my side forever & always? 💍✨',
     '[
         {
             "id": "1",
