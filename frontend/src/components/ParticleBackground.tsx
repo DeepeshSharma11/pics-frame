@@ -91,22 +91,22 @@ export default function ParticleBackground({
 
       ctx.clearRect(0, 0, curWidth, curHeight);
 
-      // Color paletting based on theme
-      let primaryColor = "244, 114, 182"; // rose
-      let secondaryColor = "253, 230, 138"; // gold
+      // Warm, elegant color paletting (No harsh blues/purples)
+      let primaryColor = "251, 113, 133"; // rose coral
+      let secondaryColor = "254, 240, 138"; // warm gold
 
-      if (theme === "midnight") {
-        primaryColor = "147, 197, 253"; // ice blue
-        secondaryColor = "196, 181, 253"; // starlight violet
+      if (theme === "obsidian") {
+        primaryColor = "251, 113, 133"; // rose gold
+        secondaryColor = "254, 240, 138"; // champagne glow
       } else if (theme === "sunset") {
         primaryColor = "251, 146, 60"; // amber sunset
         secondaryColor = "254, 215, 170"; // warm peach
       } else if (theme === "emerald") {
         primaryColor = "52, 211, 153"; // emerald
         secondaryColor = "253, 230, 138"; // champagne gold
-      } else if (theme === "neon") {
-        primaryColor = "236, 72, 153"; // neon pink
-        secondaryColor = "168, 85, 247"; // neon violet
+      } else if (theme === "ruby") {
+        primaryColor = "244, 63, 94"; // ruby red
+        secondaryColor = "254, 205, 211"; // soft blush
       }
 
       for (let i = 0; i < count; i++) {

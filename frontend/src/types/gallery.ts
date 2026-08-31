@@ -7,7 +7,7 @@ export interface PhotoItem {
   rotation?: number;
 }
 
-export type ThemeType = "rose" | "midnight" | "sunset" | "emerald" | "neon";
+export type ThemeType = "rose" | "obsidian" | "sunset" | "emerald" | "ruby";
 export type ParticleType = "hearts" | "sparkles" | "petals" | "stars" | "butterflies";
 export type OccasionType = "anniversary" | "birthday" | "proposal" | "valentine" | "just_because";
 

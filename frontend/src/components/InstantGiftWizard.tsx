@@ -340,11 +340,11 @@ export default function InstantGiftWizard({
                 <label className="section-field-label">🎨 Aesthetic Color Theme</label>
                 <div className="theme-chips">
                   {[
-                    { id: "rose", name: "🌸 Rose Gold Romance" },
-                    { id: "midnight", name: "🌌 Midnight Starlight" },
+                    { id: "rose", name: "🌸 Velvet Rose Gold" },
+                    { id: "obsidian", name: "🖤 Warm Obsidian & Amber" },
                     { id: "sunset", name: "🌅 Golden Sunset" },
                     { id: "emerald", name: "🌿 Emerald Luxury" },
-                    { id: "neon", name: "🔮 Cyber Neon" },
+                    { id: "ruby", name: "🍷 Deep Passion Ruby" },
                   ].map((t) => (
                     <button
                       key={t.id}
