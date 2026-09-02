@@ -7,6 +7,7 @@
 - `LICENSE`: MIT License (Deepesh Sharma, CTO & Co-Founder FociTech)
 
 ## Status
-- Redesigned visual palette with warm, romantic luxury colors.
-- Pushed to GitHub `main` (commit `365da82`).
-- Production build passing.
+- Groq AI (`qwen/qwen3.8-27b`) integrated end-to-end for AI write, enhance, and suggestions.
+- Backend tests (`test_main.py`) passed.
+- Frontend Next.js production build passing.
+- Pushed to GitHub `main` (commit `d12496e`).
