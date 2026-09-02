@@ -2,6 +2,13 @@
 
 import React, { useState, useRef } from "react";
 import { GalleryConfig, PhotoItem, ThemeType, ParticleType, OccasionType } from "../types/gallery";
+import {
+  aiWriteLetter,
+  aiEnhanceLetter,
+  aiSuggestCaptions,
+  aiSuggestProposal,
+  GROQ_MODEL,
+} from "../lib/aiService";
 
 interface InstantGiftWizardProps {
   isOpen: boolean;
@@ -33,6 +40,14 @@ export default function InstantGiftWizard({
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [boomState, setBoomState] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // AI Assistant States (Groq Qwen 3.8-27b)
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
+  const [aiTone, setAiTone] = useState<string>("Deep & Poetic");
+  const [aiMemoryDetails, setAiMemoryDetails] = useState<string>("");
+  const [showAiStoryBox, setShowAiStoryBox] = useState<boolean>(false);
+  const [proposalSuggestions, setProposalSuggestions] = useState<string[]>([]);
+
 
   if (!isOpen) return null;
 
@@ -138,6 +153,83 @@ export default function InstantGiftWizard({
     setUploadedPhotos(uploadedPhotos.filter((_, i) => i !== index));
   };
 
+  // AI Handlers using Groq Qwen (qwen/qwen3.8-27b)
+  const handleAIAutoCaptions = async () => {
+    if (uploadedPhotos.length === 0) return;
+    setAiLoading("captions");
+    try {
+      const results = await aiSuggestCaptions({
+        recipient_name: recipientName || "My Love",
+        occasion: occasionType,
+        count: uploadedPhotos.length,
+        context_hints: aiMemoryDetails,
+      });
+
+      const updated = uploadedPhotos.map((p, idx) => {
+        const item = results[idx] || results[idx % results.length];
+        return {
+          ...p,
+          caption: item?.caption || p.caption,
+          date: item?.chapter || p.date,
+          location: item?.location || p.location,
+        };
+      });
+      setUploadedPhotos(updated);
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleAIWriteLetter = async () => {
+    setAiLoading("letter");
+    try {
+      const res = await aiWriteLetter({
+        recipient_name: recipientName || "My Love",
+        sender_name: senderName || "Yours Always",
+        occasion: occasionType,
+        tone: aiTone,
+        key_details: aiMemoryDetails,
+        relationship_date: anniversaryDate,
+      });
+      if (res.letter) {
+        setLetter(res.letter);
+      }
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleAIEnhanceLetter = async () => {
+    if (!letter.trim()) return;
+    setAiLoading("enhance");
+    try {
+      const enhanced = await aiEnhanceLetter({
+        text: letter,
+        recipient_name: recipientName || "My Love",
+        sender_name: senderName || "Yours Always",
+        tone: aiTone,
+      });
+      if (enhanced) {
+        setLetter(enhanced);
+      }
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleAISuggestProposal = async () => {
+    setAiLoading("proposal");
+    try {
+      const suggestions = await aiSuggestProposal(
+        recipientName || "My Love",
+        senderName || "Yours Always"
+      );
+      setProposalSuggestions(suggestions);
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
   const handleCreateBoom = () => {
     if (uploadedPhotos.length === 0) {
       alert("Please upload at least 1 photo for your memory frame!");
@@ -175,7 +267,7 @@ export default function InstantGiftWizard({
           <div className="wizard-badge">🪄 3-Step Romantic Gift Creator</div>
           <h2 className="wizard-title">
             {step === 1 && "Step 1: Upload 4–5 Special Photos"}
-            {step === 2 && "Step 2: Names, Occasion & Love Letter"}
+            {step === 2 && "Step 2: Names, Occasion & AI Love Letter"}
             {step === 3 && "Step 3: Magic Theme & Atmosphere"}
           </h2>
           <button className="close-btn" onClick={onClose}>
@@ -219,9 +311,20 @@ export default function InstantGiftWizard({
               {/* Uploaded Photos Preview Grid */}
               {uploadedPhotos.length > 0 && (
                 <div className="uploaded-preview-section">
-                  <div className="preview-heading">
+                  <div className="preview-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
                     <span>Uploaded Photos ({uploadedPhotos.length})</span>
-                    <span className="rec-text">Edit captions below if you want:</span>
+                    <button
+                      type="button"
+                      className="ai-magic-btn"
+                      onClick={handleAIAutoCaptions}
+                      disabled={aiLoading === "captions"}
+                    >
+                      {aiLoading === "captions" ? (
+                        <span className="ai-loading-pulse">✨ Qwen AI Writing Captions...</span>
+                      ) : (
+                        "✨ AI Auto-Captions & Story Chapters"
+                      )}
+                    </button>
                   </div>
                   <div className="preview-grid">
                     {uploadedPhotos.map((p, idx) => (
@@ -309,10 +412,77 @@ export default function InstantGiftWizard({
                   />
                 </div>
 
+                {/* AI Letter Suite Powered by Qwen 3.8-27b */}
                 <div className="input-group full">
-                  <label>Heartfelt Love Letter</label>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", flexWrap: "wrap", gap: "6px" }}>
+                    <label style={{ margin: 0 }}>💌 Heartfelt Love Letter</label>
+                    <span className="ai-header-badge">✨ Powered by Groq Qwen 27B</span>
+                  </div>
+
+                  {/* AI Tone selector */}
+                  <div className="ai-tone-selector">
+                    {["Deep & Poetic", "Sweet & Romantic", "Playful & Cute", "Emotional", "Celebratory"].map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        className={`ai-tone-pill ${aiTone === t ? "active" : ""}`}
+                        onClick={() => setAiTone(t)}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="ai-actions-bar">
+                    <button
+                      type="button"
+                      className="ai-magic-btn"
+                      onClick={handleAIWriteLetter}
+                      disabled={aiLoading === "letter"}
+                    >
+                      {aiLoading === "letter" ? (
+                        <span className="ai-loading-pulse">✨ Writing Romantic Letter...</span>
+                      ) : (
+                        "✨ AI Write From Details"
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="ai-magic-btn secondary"
+                      onClick={handleAIEnhanceLetter}
+                      disabled={aiLoading === "enhance" || !letter.trim()}
+                    >
+                      {aiLoading === "enhance" ? (
+                        <span className="ai-loading-pulse">✨ Polishing & Elevating...</span>
+                      ) : (
+                        "🪄 AI Polish & Enhance"
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="ai-magic-btn secondary"
+                      onClick={() => setShowAiStoryBox(!showAiStoryBox)}
+                    >
+                      {showAiStoryBox ? "Hide Story Details" : "+ Add Story Details"}
+                    </button>
+                  </div>
+
+                  {showAiStoryBox && (
+                    <div className="ai-detail-box">
+                      <label>Optional memories, inside jokes, nicknames, or milestone highlights:</label>
+                      <input
+                        type="text"
+                        value={aiMemoryDetails}
+                        onChange={(e) => setAiMemoryDetails(e.target.value)}
+                        placeholder="e.g. met at the coffee shop, love our starry night road trips, our favorite song..."
+                      />
+                    </div>
+                  )}
+
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={letter}
                     onChange={(e) => setLetter(e.target.value)}
                     placeholder="Write anything sweet, romantic, or funny..."
@@ -320,13 +490,39 @@ export default function InstantGiftWizard({
                 </div>
 
                 <div className="input-group full">
-                  <label>💍 Surprise Question / Proposal (Optional)</label>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                    <label style={{ margin: 0 }}>💍 Surprise Question / Proposal (Optional)</label>
+                    <button
+                      type="button"
+                      className="ai-magic-btn secondary"
+                      style={{ padding: "3px 10px", fontSize: "0.72rem" }}
+                      onClick={handleAISuggestProposal}
+                      disabled={aiLoading === "proposal"}
+                    >
+                      {aiLoading === "proposal" ? "✨ Thinking..." : "✨ AI Suggest Lines"}
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={surpriseMessage}
                     onChange={(e) => setSurpriseMessage(e.target.value)}
                     placeholder="e.g. Will you be my forever? 💍 / Happy Birthday Jaan! 🎂"
                   />
+
+                  {proposalSuggestions.length > 0 && (
+                    <div className="ai-suggestions-list">
+                      {proposalSuggestions.map((s, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="ai-suggestion-item"
+                          onClick={() => setSurpriseMessage(s)}
+                        >
+                          ✦ {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

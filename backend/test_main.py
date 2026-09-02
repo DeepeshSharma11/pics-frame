@@ -45,6 +45,59 @@ def test_endpoints():
     assert update_res.json()["recipient_name"] == "Sarah"
     print("[PASS] POST /api/gallery endpoint OK")
 
+    # Test AI write letter
+    ai_write_res = client.post(
+        "/api/ai/write-letter",
+        json={
+            "recipient_name": "Maya",
+            "sender_name": "Deepesh",
+            "occasion": "anniversary",
+            "tone": "romantic",
+            "key_details": "first coffee date at Starbucks",
+        },
+    )
+    assert ai_write_res.status_code == 200
+    ai_write_data = ai_write_res.json()
+    assert "letter" in ai_write_data
+    assert "title" in ai_write_data
+    print("[PASS] POST /api/ai/write-letter OK -> Title:", ai_write_data["title"])
+
+    # Test AI enhance letter
+    ai_enhance_res = client.post(
+        "/api/ai/enhance-letter",
+        json={"text": "I love you so much and you make me smile.", "recipient_name": "Maya"},
+    )
+    assert ai_enhance_res.status_code == 200
+    assert "enhanced_text" in ai_enhance_res.json()
+    print("[PASS] POST /api/ai/enhance-letter OK")
+
+    # Test AI captions
+    ai_cap_res = client.post(
+        "/api/ai/suggest-captions",
+        json={"recipient_name": "Maya", "count": 3},
+    )
+    assert ai_cap_res.status_code == 200
+    assert len(ai_cap_res.json()["captions"]) >= 3
+    print("[PASS] POST /api/ai/suggest-captions OK")
+
+    # Test AI proposal
+    ai_prop_res = client.post(
+        "/api/ai/suggest-proposal",
+        json={"recipient_name": "Maya"},
+    )
+    assert ai_prop_res.status_code == 200
+    assert len(ai_prop_res.json()["proposals"]) > 0
+    print("[PASS] POST /api/ai/suggest-proposal OK")
+
+    # Test AI reasons
+    ai_reas_res = client.post(
+        "/api/ai/suggest-reasons",
+        json={"recipient_name": "Maya", "count": 5},
+    )
+    assert ai_reas_res.status_code == 200
+    assert len(ai_reas_res.json()["reasons"]) > 0
+    print("[PASS] POST /api/ai/suggest-reasons OK")
+
     # Reset
     reset_res = client.post("/api/gallery/reset")
     assert reset_res.status_code == 200
@@ -55,3 +108,4 @@ def test_endpoints():
 
 if __name__ == "__main__":
     test_endpoints()
+

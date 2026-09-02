@@ -1,74 +1,52 @@
-# Pics Frame — Personalized Memory WebApp
+# Pics Frame — Personalized Romantic Keepsake WebApp
 
-An interactive, romantic gift web application built with Next.js, FastAPI, Cloudinary, and Supabase. Users can upload 4–5 photos and instantly generate a 3D keepsake featuring floating polaroids, a storybook album, real-time relationship counter, ambient soundtrack, and a wax-sealed love letter.
-
----
-
-## Author & Creator
-
-- **Author**: **Deepesh Sharma**
-- **Role**: **CTO & Co-Founder**, [FociTech](https://focitech.in)
-- **License**: MIT (Copyright &copy; 2026 Deepesh Sharma / FociTech)
+A full-stack, interactive digital memory gift web application. Built with Next.js, FastAPI, Cloudinary, Supabase, and powered by Groq AI (`qwen/qwen3.8-27b`) for AI-powered love letter writing, text enhancement, and photo storytelling.
 
 ---
 
-## Deployment Options
+## Key Features
 
-### Option 1: Deploy with Docker & Docker Compose (Full Stack)
-
-1. Ensure Docker and Docker Compose are installed.
-2. Clone the repository and configure your environment variables in `.env`.
-3. Run:
-   ```bash
-   docker compose up --build -d
-   ```
-4. Access the services:
-   - **Frontend**: `http://localhost:3000`
-   - **Backend API**: `http://localhost:8000`
+- **3-Step Instant Gift Wizard**: Upload 4–5 photos and assemble a custom digital keepsake in seconds.
+- **AI Letter Writer & Enhancer**: Powered by Groq Qwen (`qwen/qwen3.8-27b`) to write deeply personal love letters, polish draft notes, and suggest romantic story chapters based on your memories and milestones.
+- **Auto-Captions & Story Chapters**: AI-generated chapter titles, captions, and romantic location tags for every photo.
+- **Interactive 3D Polaroids & Storybook**: Smooth tilt physics, flip animations, and memory cards.
+- **Romantic Audio Synthesizer**: Web Audio API ambient soundtrack generator (Romantic Piano, Warm Lo-Fi, Stardust Music Box).
+- **Real-Time Days Counter**: Live counter tracking every day, hour, minute, and second spent together.
+- **Cloudinary & Supabase Sync**: Automatic image optimization, compressed storage, and shareable encoded gift links.
 
 ---
 
-### Option 2: Deploy Frontend on Vercel
+## Architecture & Tech Stack
 
-1. Push your repository to GitHub (all `.env` files are automatically protected by `.gitignore`).
-2. Log in to [Vercel Dashboard](https://vercel.com).
-3. Click **"Add New" &rarr; "Project"** and import the repository.
-4. Set the **Root Directory** to `frontend`.
-5. Add your Environment Variables securely in Vercel settings:
-   - `NEXT_PUBLIC_SUPABASE_URL`: `https://your-project.supabase.co`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: `your_anon_key`
-   - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`: `your_cloud_name`
-   - `BACKEND_INTERNAL_URL`: `https://your-backend-domain.com` (if backend is hosted externally)
-6. Click **Deploy**.
+- **Frontend**: Next.js 16 (App Router, Turbopack, TypeScript, Vanilla CSS design tokens)
+- **Backend**: FastAPI (Python 3.10+, Pydantic, HTTPX)
+- **AI Engine**: Groq Cloud API (`qwen/qwen3.8-27b`)
+- **Storage & Media**: Cloudinary, Supabase
+- **Deployment**: Docker, Vercel, Render / Railway
 
 ---
 
-### Option 3: Deploy Backend on Render / Railway / Fly.io
-
-Use the included [backend/Dockerfile](backend/Dockerfile) to deploy the FastAPI container:
-- Build command: `docker build -t pics-frame-backend backend/`
-- Set port to `8000`.
-
----
-
-## Environment Variables Template
+## Environment Variables
 
 ### Backend (`backend/.env`)
 ```env
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 # Cloudinary Configuration
-CLOUDINARY_URL=cloudinary://your_api_key:your_api_secret@your_cloud_name
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+
+# Groq AI Configuration
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=qwen/qwen3.8-27b
 ```
 
 ### Frontend (`frontend/.env.local`)
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_frontend_supabase_public_key_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Cloudinary
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -77,7 +55,7 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=pics_frame_preset
 
 ---
 
-## Local Development
+## Local Development Setup
 
 ### 1. Backend
 
@@ -103,4 +81,25 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Visit [http://localhost:3000](http://localhost:3000) to view the application.
+
+---
+
+## Deployment Options
+
+### Docker Compose (Full Stack)
+```bash
+docker compose up --build -d
+```
+
+### Frontend on Vercel
+1. Import repository on [Vercel](https://vercel.com).
+2. Set Root Directory to `frontend`.
+3. Add environment variables and click **Deploy**.
+
+---
+
+## Author & License
+
+- **Engineered by**: [Deepesh Sharma](https://focitech.in) (CTO & Co-Founder, FociTech)
+- **License**: MIT

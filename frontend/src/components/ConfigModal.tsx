@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { GalleryConfig, PhotoItem } from "../types/gallery";
+import { aiWriteLetter, aiEnhanceLetter, aiSuggestCaptions } from "../lib/aiService";
 
 interface ConfigModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export default function ConfigModal({
 }: ConfigModalProps) {
   const [formData, setFormData] = useState<GalleryConfig>(config);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -40,6 +42,65 @@ export default function ConfigModal({
         }
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAIWrite = async () => {
+    setAiLoading("letter");
+    try {
+      const res = await aiWriteLetter({
+        recipient_name: formData.recipient_name,
+        sender_name: formData.sender_name,
+        occasion: formData.occasion_type || "anniversary",
+        tone: "romantic & poetic",
+        relationship_date: formData.anniversary_date,
+      });
+      if (res.letter) {
+        setFormData({ ...formData, letter: res.letter, title: res.title || formData.title });
+      }
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleAIEnhance = async () => {
+    if (!formData.letter.trim()) return;
+    setAiLoading("enhance");
+    try {
+      const enhanced = await aiEnhanceLetter({
+        text: formData.letter,
+        recipient_name: formData.recipient_name,
+        sender_name: formData.sender_name,
+      });
+      if (enhanced) {
+        setFormData({ ...formData, letter: enhanced });
+      }
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleAICaptions = async () => {
+    if (formData.photos.length === 0) return;
+    setAiLoading("captions");
+    try {
+      const results = await aiSuggestCaptions({
+        recipient_name: formData.recipient_name,
+        occasion: formData.occasion_type || "anniversary",
+        count: formData.photos.length,
+      });
+      const updated = formData.photos.map((p, idx) => {
+        const item = results[idx] || results[idx % results.length];
+        return {
+          ...p,
+          caption: item?.caption || p.caption,
+          date: item?.chapter || p.date,
+          location: item?.location || p.location,
+        };
+      });
+      setFormData({ ...formData, photos: updated });
+    } finally {
+      setAiLoading(null);
     }
   };
 
@@ -140,7 +201,29 @@ export default function ConfigModal({
             </div>
 
             <div className="input-group">
-              <label>Love Letter & Message</label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                <label style={{ margin: 0 }}>Love Letter & Message</label>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button
+                    type="button"
+                    className="ai-magic-btn"
+                    style={{ padding: "3px 10px", fontSize: "0.72rem" }}
+                    onClick={handleAIWrite}
+                    disabled={aiLoading === "letter"}
+                  >
+                    {aiLoading === "letter" ? "✨ Writing..." : "✨ AI Write"}
+                  </button>
+                  <button
+                    type="button"
+                    className="ai-magic-btn secondary"
+                    style={{ padding: "3px 10px", fontSize: "0.72rem" }}
+                    onClick={handleAIEnhance}
+                    disabled={aiLoading === "enhance" || !formData.letter.trim()}
+                  >
+                    {aiLoading === "enhance" ? "✨ Polishing..." : "🪄 AI Polish"}
+                  </button>
+                </div>
+              </div>
               <textarea
                 rows={4}
                 value={formData.letter}
@@ -152,12 +235,24 @@ export default function ConfigModal({
 
           {/* Photos Management */}
           <div className="config-section">
-            <div className="section-label-row">
+            <div className="section-label-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <h3 className="section-label">2. Photos & Moments ({formData.photos.length})</h3>
-              <button className="add-photo-btn" onClick={addPhoto}>
-                + Add Another Photo
-              </button>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="ai-magic-btn"
+                  style={{ padding: "4px 10px", fontSize: "0.72rem" }}
+                  onClick={handleAICaptions}
+                  disabled={aiLoading === "captions"}
+                >
+                  {aiLoading === "captions" ? "✨ Writing Captions..." : "✨ AI Captions"}
+                </button>
+                <button className="add-photo-btn" onClick={addPhoto}>
+                  + Add Photo
+                </button>
+              </div>
             </div>
+
 
             <div className="photos-edit-list">
               {formData.photos.map((photo, idx) => (
